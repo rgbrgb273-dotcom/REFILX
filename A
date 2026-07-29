@@ -1,0 +1,129 @@
+-- ====================================================
+-- REFILX HUB - Universal Auto-Farm (English Safe Version)
+-- Creator: REFILX
+-- ====================================================
+
+local WindUI = loadstring(game:HttpGet("https://tree-hub.vercel.app/api/UI/WindUI"))()
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+
+_G.AutoFarm = false
+_G.WalkSpeed = 16
+
+-- 1. Create Main Window
+local Window = WindUI:CreateWindow({
+    Title = "⚡ REFILX HUB",
+    SubTitle = "Auto-Farm System | Made by REFILX",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(600, 400),
+    Theme = "Purple",
+    Icon = "sparkles",
+    Author = "REFILX"
+})
+
+-- 2. Create Tabs
+local Tabs = {
+    Main = Window:Tab({ Title = "Main", Icon = "swords" }),
+    Player = Window:Tab({ Title = "Player", Icon = "user" }),
+    Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
+}
+
+-- ----------------------------------------------------
+-- Tab 1: Main
+-- ----------------------------------------------------
+local FarmSection = Tabs.Main:Section({ Title = "Auto Farm", Side = "Left" })
+
+FarmSection:Toggle({
+    Title = "Enable Auto Farm",
+    Desc = "Auto click or use tool continuously",
+    Value = false,
+    Callback = function(State)
+        _G.AutoFarm = State
+        if _G.AutoFarm then
+            task.spawn(function()
+                while _G.AutoFarm do
+                    local char = LocalPlayer.Character
+                    if char then
+                        local tool = char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+                        if tool then
+                            if tool.Parent == LocalPlayer.Backpack then
+                                tool.Parent = char
+                            end
+                            tool:Activate()
+                        end
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+-- ----------------------------------------------------
+-- Tab 2: Player
+-- ----------------------------------------------------
+local CharSection = Tabs.Player:Section({ Title = "Character Modifier", Side = "Left" })
+
+CharSection:Slider({
+    Title = "WalkSpeed",
+    Min = 16,
+    Max = 120,
+    Default = 16,
+    Callback = function(Value)
+        _G.WalkSpeed = Value
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+-- ----------------------------------------------------
+-- Tab 3: Custom Color Picker & UI Themes
+-- ----------------------------------------------------
+local ColorSection = Tabs.Settings:Section({ Title = "Custom Colors & Theme", Side = "Left" })
+
+ColorSection:Colorpicker({
+    Title = "UI Accent Color (Custom Color)",
+    Default = Color3.fromRGB(130, 80, 230),
+    Callback = function(Color)
+        Window:SetAccentColor(Color)
+    end
+})
+
+-- ----------------------------------------------------
+-- Rainbow RGB Text Effect for REFILX Title
+-- ----------------------------------------------------
+task.spawn(function()
+    local hue = 0
+    RunService.RenderStepped:Connect(function()
+        hue = (hue + 0.005) % 1
+        local rgbColor = Color3.fromHSV(hue, 0.8, 1)
+        
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            for _, gui in pairs(playerGui:GetChildren()) do
+                if gui.Name:find("WindUI") or gui.Name:find("REFILX") then
+                    for _, desc in pairs(gui:GetDescendants()) do
+                        if desc:IsA("TextLabel") and desc.Text:find("REFILX") then
+                            desc.TextColor3 = rgbColor
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+-- Anti-AFK Function
+LocalPlayer.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+end)
+
+WindUI:Notify({
+    Title = "REFILX HUB",
+    Content = "Script Loaded Successfully! Created by REFILX",
+    Duration = 4
+})
